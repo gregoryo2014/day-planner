@@ -10,6 +10,7 @@
 #        GMO 17May2011 no more JIRA, RT now
 #	 GMO 14Jun2011 All caps headings
 #	 GMO 21Mar2013 Add recurring tasks
+#	 GMO 13Jun2013 Add recurring day-of-week tasks
 #
 ############################################################
 # Script overview, pseudocode
@@ -23,6 +24,7 @@
 #
 #   EOF
 #   loop until found most recent previous-day-datestamp.txt
+#     append recurring tasks and day-of-week tasks
 #     append last n-2 lines of previous-day-datestamp.txt
 #   end loop
 # end if
@@ -35,7 +37,8 @@ my $todayStamp = $year + 1900 . sprintf( "%02d", $mon + 1 ) . sprintf( "%02d", $
 my $todayFile = "$todayStamp.txt";
 my ( $todayOpened, @dayAbbr, @monAbbr, $wdayString, $monString, $yearString );
 my ( $previousStamp, $previousFile, $previousOpened, $input, $output, $recurOpened );
-my $recurTasksFile = "recurringTasks.txt";
+my ( $wdayTasksFile, $wdayOpened );
+my $recurTasksFile = "recurring-tasks.txt";
 
 # Which OS? http://www.perlmeme.org/faqs/system/check_os.html
 my $os = $^O;
@@ -49,7 +52,7 @@ if( $os =~ "MSWin32" ) {
   $vimBin = "C:\\Program\ Files\\vim\\vim71\\gvim.exe";
   $vimBin = "C:\\vimDISABLEDfornow";
 } elsif( $os =~ "linux" ) {
-  chdir( "/var/local/share/moe/dayPlanner" );
+  #chdir( "/var/local/share/moe/dayPlanner" );
   $vimBin = "/usr/bin/gvim";
 }
 
@@ -91,6 +94,19 @@ unless( -e $todayFile ) {
       exit 1;
     }
     while( $input = <RECUR> ) {
+      print TODAY $input;
+    }
+  }
+
+  # Add recurring day-of-week tasks from file, if it exists
+  $wdayTasksFile = "$wdayString.txt";
+  if( -e $wdayTasksFile ) {
+    $wdayOpened = open( WDAY, "<$wdayTasksFile" );
+    if( ! $wdayOpened ) {
+      print "Recurring day-of-week tasks file failed to open\n";
+      exit 1;
+    }
+    while( $input = <WDAY> ) {
       print TODAY $input;
     }
   }
