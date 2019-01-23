@@ -1,0 +1,124 @@
+#!/usr/bin/perl -w
+# Script to create a dayplanner text file
+# NOTE: a previous dayplanner file must exist
+# Author GMO 28Jun2009
+# Edits: GMO 30Jun2009 able to open the file in vim, but disabled for now
+#        GMO 1Jul2009 don't transfer deleted (x) tasks, other tweaks
+#        GMO 5Aug2009 don't transfer JIRA'd (j) tasks
+#        GMO 24Sep2009 variable cleanup, OS aware
+#        GMO 14Oct2009 dos2unix and #!/... header to make it work in Ubuntu
+#
+# DIR=current working dir (cwd)
+# If file 'DIR\datestamp.txt' exists, exit
+# else (If file doesn't exist)
+#   create 'DIR\datestamp.txt'
+#   Echo into file until EOF:
+#   Day date month, year
+#
+#   EOF
+#   loop until found most recent previous-day-datestamp.txt
+#     append last n-2 lines of previous-day-datestamp.txt
+#   end loop
+# end if
+# open DIR\datestamp.txt in gvim
+
+#my $ready;
+#print "hello world\n";
+#$ready = <>;
+#exit 0;
+#($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+my $discard;
+($discard,$discard,$discard,$mday,$mon,$year,$wday,$discard,$discard) = localtime();
+my $todayStamp = $year + 1900 . sprintf( "%02d", $mon + 1 ) . sprintf( "%02d", $mday );
+my $todayFile = "$todayStamp.txt";
+my ( $todayOpened, @dayAbbr, @monAbbr, $wdayString, $monString, $yearString );
+my ( $previousStamp, $previousFile, $previousOpened, $input, $output );
+# Which OS? http://www.perlmeme.org/faqs/system/check_os.html
+my $os = $^O;
+my $vimBin;
+#my $winBin = "C:\\Program\ Files\\vim\\vim71\\gvim.exe";
+#my $linBin = "/usr/bin/gvim";
+
+# Change dir and choose the vim binary
+if( $os =~ "MSWin32" ) {
+  chdir( "F:\\moe\\dayPlanner" );
+  $vimBin = "C:\\Program\ Files\\vim\\vim71\\gvim.exe";
+  $vimBin = "C:\\vimDISABLEDfornow";
+} elsif( $os =~ "linux" ) {
+  chdir( "/var/local/share/moe/dayPlanner" );
+  $vimBin = "/usr/bin/gvim";
+}
+
+# If today's file already exists, leave it alone
+unless( -e $todayFile ) {
+  # otherwise, create and open it for writing
+  $todayOpened = open( TODAY, ">>$todayFile" );
+  if( ! $todayOpened ) {
+    print "File not opened\n";
+    exit 1;
+  }
+
+  # Store today's date
+  @dayAbbr = qw( Sunday Monday Tuesday Wednesday Thursday Friday );
+  @monAbbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
+  $wdayString = $dayAbbr[$wday];
+  $monString = $monAbbr[$mon];
+  $yearString = $year + 1900;
+  print TODAY "$wdayString $mday $monString, $yearString\n\n";
+
+  # Step backwards incrementally, finding the most recent file
+  # Sure it checks for non-existent dates, but it's fast and it works
+  $previousStamp = $todayStamp - 1;
+  do {
+    $previousFile = $previousStamp-- . ".txt";
+    $previousOpened = open( PREVIOUS, "<$previousFile" );
+  } until $previousOpened;
+
+  # Skip all lines in the previous file until the headings
+  $input = "";
+  while(( $input !~ /Stat\tPri\tList/i ) && ( $input = <PREVIOUS> )) {}
+  print TODAY $input;
+
+  # process the rest of the previous file
+  while( $input = <PREVIOUS> ) {
+    # transfer all except finished (done) or deleted (x) or JIRA'd (j) tasks
+    unless( $input =~ /^[^\t]*(done|x|j)/i ) {
+      # strip any state info, but include blank lines
+      $output = $input;
+      $output =~ (s/^[^\t\n]*//);
+      print TODAY $output;
+    }
+  }
+} # unless
+
+# FIXME - Perl keeps running until Vim exits.
+#system( $vimBin, $todayFile );
+#if previousOpened {
+  # move previousFile to archive subdir
+#}
+
+# If this is Windows
+#if( -e $winBin ) {
+# open todayFile in vim4win
+#system( $winBin, $todayFile );
+  #system( "C:\\Program\ Files\\vim\\vim71\\gvim.exe", $todayFile );
+
+# If this is Linux
+#} elsif( -e $linBin ) {
+  # open todayFile in gvim
+  #system( $linBin, $todayFile );
+#}
+
+# FIXME vim opens readonly for some reason
+#sleep( 8 );
+
+if( -e $vimBin ) {
+  # open todayFile in gvim
+  # FIXME consider changing to exec (and test - it does weird stuff)
+  system( $vimBin, $todayFile );
+  exit 0;
+}
+
+#else {
+  #print "Error, can't find an editor to open $todayFile\n";
+#}
