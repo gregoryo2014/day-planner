@@ -11,6 +11,9 @@
 #	 GMO 14Jun2011 All caps headings
 #	 GMO 21Mar2013 Add recurring tasks
 #
+############################################################
+# Script overview, pseudocode
+############################################################
 # DIR=current working dir (cwd)
 # If file 'DIR\datestamp.txt' exists, exit
 # else (If file doesn't exist)
@@ -24,18 +27,16 @@
 #   end loop
 # end if
 # open DIR\datestamp.txt in gvim
+############################################################
 
-#my $ready;
-#print "hello world\n";
-#$ready = <>;
-#exit 0;
-#($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 my $discard;
 ($discard,$discard,$discard,$mday,$mon,$year,$wday,$discard,$discard) = localtime();
 my $todayStamp = $year + 1900 . sprintf( "%02d", $mon + 1 ) . sprintf( "%02d", $mday );
 my $todayFile = "$todayStamp.txt";
 my ( $todayOpened, @dayAbbr, @monAbbr, $wdayString, $monString, $yearString );
-my ( $previousStamp, $previousFile, $previousOpened, $input, $output );
+my ( $previousStamp, $previousFile, $previousOpened, $input, $output, $recurOpened );
+my $recurTasksFile = "recurringTasks.txt";
+
 # Which OS? http://www.perlmeme.org/faqs/system/check_os.html
 my $os = $^O;
 my $vimBin;
@@ -57,7 +58,7 @@ unless( -e $todayFile ) {
   # otherwise, create and open it for writing
   $todayOpened = open( TODAY, ">>$todayFile" );
   if( ! $todayOpened ) {
-    print "File not opened\n";
+    print "Today's file failed to open\n";
     exit 1;
   }
 
@@ -81,6 +82,18 @@ unless( -e $todayFile ) {
   $input = "";
   while(( $input !~ /STAT\tPRI\tLIST/i ) && ( $input = <PREVIOUS> )) {}
   print TODAY $input;
+
+  # Add recurring tasks from file, if it exists
+  if( -e $recurTasksFile ) {
+    $recurOpened = open( RECUR, "<$recurTasksFile" );
+    if( ! $recurOpened ) {
+      print "Recurring tasks file failed to open\n";
+      exit 1;
+    }
+    while( $input = <RECUR> ) {
+      print TODAY $input;
+    }
+  }
 
   # process the rest of the previous file
   while( $input = <PREVIOUS> ) {
