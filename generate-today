@@ -7,6 +7,9 @@
 #        GMO 5Aug2009 don't transfer JIRA'd (j) tasks
 #        GMO 24Sep2009 variable cleanup, OS aware
 #        GMO 14Oct2009 dos2unix and #!/... header to make it work in Ubuntu
+#        GMO 17May2011 no more JIRA, RT now
+#	 GMO 14Jun2011 All caps headings
+#	 GMO 21Mar2013 Add recurring tasks
 #
 # DIR=current working dir (cwd)
 # If file 'DIR\datestamp.txt' exists, exit
@@ -76,13 +79,13 @@ unless( -e $todayFile ) {
 
   # Skip all lines in the previous file until the headings
   $input = "";
-  while(( $input !~ /Stat\tPri\tList/i ) && ( $input = <PREVIOUS> )) {}
+  while(( $input !~ /STAT\tPRI\tLIST/i ) && ( $input = <PREVIOUS> )) {}
   print TODAY $input;
 
   # process the rest of the previous file
   while( $input = <PREVIOUS> ) {
-    # transfer all except finished (done) or deleted (x) or JIRA'd (j) tasks
-    unless( $input =~ /^[^\t]*(done|x|j)/i ) {
+    # transfer all except finished (done), deleted (x) or RT'd (r) tasks
+    unless( $input =~ /^[^\t]*(done|x|r)/i ) {
       # strip any state info, but include blank lines
       $output = $input;
       $output =~ (s/^[^\t\n]*//);
