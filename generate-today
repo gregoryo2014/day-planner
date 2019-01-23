@@ -1,20 +1,7 @@
 #!/usr/bin/perl -w
 #
 # Script to create a dayplanner text file
-# NOTE: a previous dayplanner file must exist
-#
-# Author GMO 28Jun2009
-# Edits: GMO 30Jun2009 able to open the file in vim, but disabled for now
-#        GMO 01Jul2009 don't transfer deleted (x) tasks, other tweaks
-#        GMO 05Aug2009 don't transfer JIRA'd (j) tasks
-#        GMO 24Sep2009 variable cleanup, OS aware
-#        GMO 14Oct2009 dos2unix and #!/... header to make it work in Ubuntu
-#        GMO 17May2011 no more JIRA, RT now
-#	 GMO 14Jun2011 All caps headings
-#	 GMO 21Mar2013 Add recurring tasks
-#	 GMO 13Jun2013 Add recurring day-of-week tasks
-#	 GMO 30May2018 no more RT, JIRA now
-#	 GMO 05Jun2018 don't transfer delegated (>) tasks
+# FIXME: a previous dayplanner file must exist
 #
 ############################################################
 # Script overview, pseudocode
@@ -119,7 +106,8 @@ unless( -e $today_file ) {
     #   delegated (>)
     #   deleted (x)
     #   sent to JIRA (j)
-    unless( $input =~ /^[^\t]*(done|>|x|j)/i ) {      # strip any state info, but include blank lines
+    unless( $input =~ /^[^\t]*(done|>|x|j)/i ) {
+      # strip any state info, but include blank lines
       $output = $input;
       $output =~ (s/^[^\t\n]*//);
       print TODAY $output;
@@ -130,8 +118,9 @@ unless( -e $today_file ) {
 # Open today's file
 ########################################
 if( -e $vim_bin ) {
-  # open today_file in gvim
-  system( $vim_bin, $today_file );
+  # open today_file in gvim with cursorcolumn disabled
+  @vim_args = ("-c set cuc&", $today_file);
+  system( $vim_bin, @vim_args );
   exit 0;
 }
 
