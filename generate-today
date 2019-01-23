@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
+#
 # Script to create a dayplanner text file
 # NOTE: a previous dayplanner file must exist
+#
 # Author GMO 28Jun2009
 # Edits: GMO 30Jun2009 able to open the file in vim, but disabled for now
 #        GMO 1Jul2009 don't transfer deleted (x) tasks, other tweaks
@@ -11,10 +13,12 @@
 #	 GMO 14Jun2011 All caps headings
 #	 GMO 21Mar2013 Add recurring tasks
 #	 GMO 13Jun2013 Add recurring day-of-week tasks
+#	 GMO 30May2018 no more RT, JIRA now
 #
 ############################################################
 # Script overview, pseudocode
 ############################################################
+#
 # DIR=current working dir (cwd)
 # If file 'DIR\datestamp.txt' exists, exit
 # else (If file doesn't exist)
@@ -29,67 +33,63 @@
 #   end loop
 # end if
 # open DIR\datestamp.txt in gvim
+#
 ############################################################
 
 my $discard;
 ($discard,$discard,$discard,$mday,$mon,$year,$wday,$discard,$discard) = localtime();
-my $todayStamp = $year + 1900 . sprintf( "%02d", $mon + 1 ) . sprintf( "%02d", $mday );
-my $todayFile = "$todayStamp.txt";
-my ( $todayOpened, @dayAbbr, @monAbbr, $wdayString, $monString, $yearString );
-my ( $previousStamp, $previousFile, $previousOpened, $input, $output, $recurOpened );
-my ( $wdayTasksFile, $wdayOpened );
-my $recurTasksFile = "recurring-tasks.txt";
+my $today_stamp = $year + 1900 . sprintf( "%02d", $mon + 1 ) . sprintf( "%02d", $mday );
+my $today_file = "$today_stamp.txt";
+my ( $today_opened, @day_abbr, @mon_abbr, $wday_string, $mon_string, $year_string );
+my ( $previous_stamp, $previous_file, $previous_opened, $input, $output, $recur_opened );
+my ( $wday_tasks_file, $wday_opened );
+my $recurTasks_file = "recurring-tasks.txt";
 
 # Which OS? http://www.perlmeme.org/faqs/system/check_os.html
 my $os = $^O;
-my $vimBin;
-#my $winBin = "C:\\Program\ Files\\vim\\vim71\\gvim.exe";
-#my $linBin = "/usr/bin/gvim";
+my $vim_bin;
 
 # Change dir and choose the vim binary
-if( $os =~ "MSWin32" ) {
-  chdir( "F:\\moe\\dayPlanner" );
-  $vimBin = "C:\\Program\ Files\\vim\\vim71\\gvim.exe";
-  $vimBin = "C:\\vimDISABLEDfornow";
-} elsif( $os =~ "linux" ) {
-  #chdir( "/var/local/share/moe/dayPlanner" );
-  $vimBin = "/usr/bin/gvim";
-}
+########################################
+chdir( "/home/ora006/ownCloud/day-planner" );
+$vim_bin = "/usr/bin/gvim";
 
+# Create and populate today's file
+########################################
 # If today's file already exists, leave it alone
-unless( -e $todayFile ) {
+unless( -e $today_file ) {
   # otherwise, create and open it for writing
-  $todayOpened = open( TODAY, ">>$todayFile" );
-  if( ! $todayOpened ) {
+  $today_opened = open( TODAY, ">>$today_file" );
+  if( ! $today_opened ) {
     print "Today's file failed to open\n";
     exit 1;
   }
 
   # Store today's date
-  @dayAbbr = qw( Sunday Monday Tuesday Wednesday Thursday Friday );
-  @monAbbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
-  $wdayString = $dayAbbr[$wday];
-  $monString = $monAbbr[$mon];
-  $yearString = $year + 1900;
-  print TODAY "$wdayString $mday $monString, $yearString\n\n";
+  @day_abbr = qw( Sunday Monday Tuesday Wednesday Thursday Friday );
+  @mon_abbr = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
+  $wday_string = $day_abbr[$wday];
+  $mon_string = $mon_abbr[$mon];
+  $year_string = $year + 1900;
+  print TODAY "$wday_string $mday $mon_string, $year_string\n\n";
 
   # Step backwards incrementally, finding the most recent file
   # Sure it checks for non-existent dates, but it's fast and it works
-  $previousStamp = $todayStamp - 1;
+  $previous_stamp = $today_stamp - 1;
   do {
-    $previousFile = $previousStamp-- . ".txt";
-    $previousOpened = open( PREVIOUS, "<$previousFile" );
-  } until $previousOpened;
+    $previous_file = $previous_stamp-- . ".txt";
+    $previous_opened = open( PREVIOUS, "<$previous_file" );
+  } until $previous_opened;
 
   # Skip all lines in the previous file until the headings
   $input = "";
-  while(( $input !~ /STAT\tPRI\tLIST/i ) && ( $input = <PREVIOUS> )) {}
+  while(( $input !~ /STATE\tPRI\tLIST/i ) && ( $input = <PREVIOUS> )) {}
   print TODAY $input;
 
   # Add recurring tasks from file, if it exists
-  if( -e $recurTasksFile ) {
-    $recurOpened = open( RECUR, "<$recurTasksFile" );
-    if( ! $recurOpened ) {
+  if( -e $recurTasks_file ) {
+    $recur_opened = open( RECUR, "<$recurTasks_file" );
+    if( ! $recur_opened ) {
       print "Recurring tasks file failed to open\n";
       exit 1;
     }
@@ -99,10 +99,10 @@ unless( -e $todayFile ) {
   }
 
   # Add recurring day-of-week tasks from file, if it exists
-  $wdayTasksFile = "$wdayString.txt";
-  if( -e $wdayTasksFile ) {
-    $wdayOpened = open( WDAY, "<$wdayTasksFile" );
-    if( ! $wdayOpened ) {
+  $wday_tasks_file = "$wday_string.txt";
+  if( -e $wday_tasks_file ) {
+    $wday_opened = open( WDAY, "<$wday_tasks_file" );
+    if( ! $wday_opened ) {
       print "Recurring day-of-week tasks file failed to open\n";
       exit 1;
     }
@@ -113,44 +113,24 @@ unless( -e $todayFile ) {
 
   # process the rest of the previous file
   while( $input = <PREVIOUS> ) {
-    # transfer all except finished (done), deleted (x) or RT'd (r) tasks
-    unless( $input =~ /^[^\t]*(done|x|r)/i ) {
+    # transfer all except finished (done), deleted (x) or JIRA'd (j) tasks
+    unless( $input =~ /^[^\t]*(done|x|j)/i ) {
       # strip any state info, but include blank lines
       $output = $input;
       $output =~ (s/^[^\t\n]*//);
       print TODAY $output;
     }
   }
-} # unless
+}
 
-# FIXME - Perl keeps running until Vim exits.
-#system( $vimBin, $todayFile );
-#if previousOpened {
-  # move previousFile to archive subdir
-#}
-
-# If this is Windows
-#if( -e $winBin ) {
-# open todayFile in vim4win
-#system( $winBin, $todayFile );
-  #system( "C:\\Program\ Files\\vim\\vim71\\gvim.exe", $todayFile );
-
-# If this is Linux
-#} elsif( -e $linBin ) {
-  # open todayFile in gvim
-  #system( $linBin, $todayFile );
-#}
-
-# FIXME vim opens readonly for some reason
-#sleep( 8 );
-
-if( -e $vimBin ) {
-  # open todayFile in gvim
-  # FIXME consider changing to exec (and test - it does weird stuff)
-  system( $vimBin, $todayFile );
+# Open today's file
+########################################
+if( -e $vim_bin ) {
+  # open today_file in gvim
+  system( $vim_bin, $today_file );
   exit 0;
 }
 
-#else {
-  #print "Error, can't find an editor to open $todayFile\n";
-#}
+else {
+  print "Error, can't find an editor to open $today_file\n";
+}
