@@ -5,8 +5,8 @@
 #
 # Author GMO 28Jun2009
 # Edits: GMO 30Jun2009 able to open the file in vim, but disabled for now
-#        GMO 1Jul2009 don't transfer deleted (x) tasks, other tweaks
-#        GMO 5Aug2009 don't transfer JIRA'd (j) tasks
+#        GMO 01Jul2009 don't transfer deleted (x) tasks, other tweaks
+#        GMO 05Aug2009 don't transfer JIRA'd (j) tasks
 #        GMO 24Sep2009 variable cleanup, OS aware
 #        GMO 14Oct2009 dos2unix and #!/... header to make it work in Ubuntu
 #        GMO 17May2011 no more JIRA, RT now
@@ -14,6 +14,7 @@
 #	 GMO 21Mar2013 Add recurring tasks
 #	 GMO 13Jun2013 Add recurring day-of-week tasks
 #	 GMO 30May2018 no more RT, JIRA now
+#	 GMO 05Jun2018 don't transfer delegated (>) tasks
 #
 ############################################################
 # Script overview, pseudocode
@@ -113,9 +114,12 @@ unless( -e $today_file ) {
 
   # process the rest of the previous file
   while( $input = <PREVIOUS> ) {
-    # transfer all except finished (done), deleted (x) or JIRA'd (j) tasks
-    unless( $input =~ /^[^\t]*(done|x|j)/i ) {
-      # strip any state info, but include blank lines
+    # transfer all tasks except:
+    #   finished (done)
+    #   delegated (>)
+    #   deleted (x)
+    #   sent to JIRA (j)
+    unless( $input =~ /^[^\t]*(done|>|x|j)/i ) {      # strip any state info, but include blank lines
       $output = $input;
       $output =~ (s/^[^\t\n]*//);
       print TODAY $output;
