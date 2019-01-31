@@ -119,7 +119,7 @@ unless( -e $today_file ) {
 ########################################
 if( -e $vim_bin ) {
   # open today_file in gvim with cursorcolumn disabled
-  @vim_args = ("-c set cuc&", $today_file);
+  @vim_args = ("-c set cuc&", "-c set foldmethod&", $today_file);
   system( $vim_bin, @vim_args );
   exit 0;
 }
