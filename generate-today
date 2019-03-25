@@ -39,7 +39,7 @@ my $vim_bin;
 
 # Change dir and choose the vim binary
 ########################################
-chdir( "/home/ora006/ownCloud/day-planner" );
+chdir( "/home/ora006/Nextcloud/day-planner" );
 $vim_bin = "/usr/bin/gvim";
 
 # Create and populate today's file
