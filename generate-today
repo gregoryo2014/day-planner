@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 #
-# Script to create a dayplanner text file
-# FIXME: a previous dayplanner file must exist
+# Script to create and open a day-planner text file
+# FIXME: a previous day-planner file must exist
+# FIXME: chdir is set to a fixed location
 #
 ############################################################
 # Script overview, pseudocode
@@ -23,6 +24,8 @@
 # open DIR\datestamp.txt in gvim
 #
 ############################################################
+#
+use Switch;
 
 my $discard;
 ($discard,$discard,$discard,$mday,$mon,$year,$wday,$discard,$discard) = localtime();
@@ -34,13 +37,12 @@ my ( $wday_tasks_file, $wday_opened );
 my $recurTasks_file = "recurring-tasks.txt";
 
 # Which OS? http://www.perlmeme.org/faqs/system/check_os.html
-my $os = $^O;
+my $op_sys = $^O;
 my $vim_bin;
 
-# Change dir and choose the vim binary
+# Change dir
 ########################################
 chdir( "/home/gorange/Nextcloud/day-planner" );
-$vim_bin = "/usr/bin/gvim";
 
 # Create and populate today's file
 ########################################
@@ -117,13 +119,21 @@ unless( -e $today_file ) {
 
 # Open today's file
 ########################################
+switch($op_sys) {
+  case "darwin" {
+    # open today_file in MacVim
+    $vim_bin = "/usr/bin/open";
+    @vim_args = ("-a", "MacVim", $today_file);
+  }
+  else {
+    # open today_file in gvim with some options set to default
+    $vim_bin = "/usr/bin/gvim";
+    @vim_args = ("-c set cuc&", "-c set foldmethod&", "-c set expandtab&", "-c set tabstop&", $today_file);
+  }
+}
 if( -e $vim_bin ) {
-  # open today_file in gvim with cursorcolumn disabled
-  @vim_args = ("-c set cuc&", "-c set foldmethod&", "-c set expandtab&", "-c set tabstop&", $today_file);
   system( $vim_bin, @vim_args );
   exit 0;
-}
-
-else {
+} else {
   print "Error, can't find an editor to open $today_file\n";
 }
