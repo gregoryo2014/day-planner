@@ -42,7 +42,7 @@ my $vim_bin;
 
 # Change dir
 ########################################
-chdir( "/home/gorange/Nextcloud/day-planner" );
+chdir( "$ENV{'HOME'}/Nextcloud/day-planner" );
 
 # Create and populate today's file
 ########################################
