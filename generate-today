@@ -128,7 +128,7 @@ switch($op_sys) {
   else {
     # open today_file in gvim with some options set to default
     $vim_bin = "/usr/bin/gvim";
-    @vim_args = ("-c set cuc&", "-c set foldmethod&", "-c set expandtab&", "-c set tabstop&", $today_file);
+    @vim_args = ("-c set cuc&", "-c set cul&", "-c set fdm&", "-c set et&", "-c set ts&", $today_file);
   }
 }
 if( -e $vim_bin ) {
