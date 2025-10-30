@@ -34,7 +34,7 @@ my $today_file = "$today_stamp.txt";
 my ( $today_opened, @day_abbr, @mon_abbr, $wday_string, $mon_string, $year_string );
 my ( $previous_stamp, $previous_file, $previous_opened, $input, $output, $recur_opened );
 my ( $wday_tasks_file, $wday_opened );
-my $recurTasks_file = "recurring-tasks.txt";
+my $recur_tasks_file = "recurring-tasks.txt";
 
 # Which OS? http://www.perlmeme.org/faqs/system/check_os.html
 my $op_sys = $^O;
@@ -42,7 +42,7 @@ my $vim_bin;
 
 # Change dir
 ########################################
-chdir( "$ENV{'HOME'}/ownCloud/day-planner" );
+chdir( "$ENV{'HOME'}/Documents/day-planner" );
 
 # Create and populate today's file
 ########################################
@@ -77,8 +77,8 @@ unless( -e $today_file ) {
   print TODAY $input;
 
   # Add recurring tasks from file, if it exists
-  if( -e $recurTasks_file ) {
-    $recur_opened = open( RECUR, "<$recurTasks_file" );
+  if( -e $recur_tasks_file ) {
+    $recur_opened = open( RECUR, "<$recur_tasks_file" );
     if( ! $recur_opened ) {
       print "Recurring tasks file failed to open\n";
       exit 1;
@@ -128,7 +128,7 @@ switch($op_sys) {
   else {
     # open today_file in gvim with some options set to default
     $vim_bin = "/usr/bin/gvim";
-    @vim_args = ("-c set cuc&", "-c set cul&", "-c set fdm&", "-c set et&", "-c set ts&", $today_file);
+    @vim_args = ("-c set cuc&", "-c set cul&", "-c set fdm&", "-c set et&", "-c set ts&", "-c set cc&", $today_file);
   }
 }
 if( -e $vim_bin ) {
